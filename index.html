@@ -42,12 +42,15 @@
   <div class="pure-u-1">
     <div>
       <fieldset>
-        <input type="input" placeholder="1 RM Weight" class="pure-input-rounded" v-model="maxWeight">
-        <button class="pure-button pure-button-primary pure-input-rounded" v-on:click="compute" onclick="return false;">
+        &nbsp;
+        <div class="pure-u-1-2">
+          <input type="number" placeholder="100% Weight" class="pure-input-rounded" v-model="maxWeight" style="width: 100%">
+        </div>
+        <button class="pure-button pure-button-primary pure-input-rounded" v-on:click="compute">
           Compute
         </button>
-        <button class="pure-button pure-input-rounded" v-bind:class="{'button-secondary': editing}"
-                v-on:click="toggleEdit" onclick="return false;">Edit
+        <button class="pure-button pure-input-rounded" v-bind:class="{'button-secondary': editing}" v-on:click="toggleEdit">
+          Edit
         </button>
       </fieldset>
     </div>
@@ -55,8 +58,9 @@
     <table class="pure-table pure-table-horizontal pure-table-striped" style="width: 100%" id="breakdown">
       <thead>
       <tr>
+        <th>&nbsp;</th>
         <th>%</th>
-        <th>Weight</th>
+        <th>W</th>
         <th>Reps</th>
         <th>&nbsp;</th>
       </tr>
@@ -64,31 +68,57 @@
 
       <tbody>
 
-      <tr v-for="set in sets" id="{{ set.percentage }}" v-bind:class="{done: set.done}">
-        <td>{{ set.percentage }}</td>
+      <tr v-for="(set, index) in sets" v-bind:class="{done: set.done}">
+        <td>
+          <button class="button-success" v-show="editing" style="font-weight: bold"
+                  v-on:click="cloneSet(index)">+</button>
+        </td>
+        <td>{{ set.percentage }} %</td>
         <td>{{ set.weight }}</td>
-        <td style="text-align: center">
-          <button class="button-error" v-show="editing" v-on:click="minusCount(set.percentage)">-</button>
-          <span v-if="set.count > 1 || editing">{{ set.count }}</span>
-          <button class="button-success" v-show="editing" v-on:click="addCount(set.percentage)">+</button>
-          <br v-show="editing" />
-          <span v-if="set.count > 1 || editing">x</span>
-          <br v-show="editing" />
-          <button class="button-error" v-show="editing" v-on:click="minusRep(set.percentage)">-</button>
-          <span>{{ set.reps }}</span>
-          <button class="button-success" v-show="editing" v-on:click="addRep(set.percentage)">+</button>
+        <td>
+          <span v-show="editing">
+            <select v-model="set.reps" class="pure-input-rounded">
+              <option>1</option>
+              <option>2</option>
+              <option>3</option>
+              <option>4</option>
+              <option>5</option>
+              <option>6</option>
+              <option>7</option>
+              <option>8</option>
+              <option>9</option>
+              <option>10</option>
+              <option>11</option>
+              <option>12</option>
+            </select>
+          </span>
+          <span v-show="!editing">{{ set.reps }}</span>
         </td>
         <td>
-          <button class="pure-button pure-input-rounded button-warning" v-show="editing"
-                  v-on:click="deleteSet(set.percentage)">&cross;</button>
+          <button class="button-warning" v-show="editing"
+                  v-on:click="deleteSet(index)">&cross;</button>
+
           <button class="pure-button pure-input-rounded" v-show="!editing"
                   v-bind:class="{'pure-button-primary': !set.done}"
-                  v-on:click="doneSet(set.percentage)">&check;</button>
+                  v-on:click="doneSet(index)">&check;</button>
         </td>
       </tr>
 
       </tbody>
     </table>
+
+    <div v-show="editing">
+      <fieldset>
+        &nbsp;
+        <div class="pure-u-1-2">
+          <input type="number" placeholder="Percentage" class="pure-input-rounded" v-model="addPercentage" style="width: 100%">
+        </div>
+        <button class="pure-button pure-button-primary pure-input-rounded" v-on:click="addSet">
+          Add
+        </button>
+      </fieldset>
+    </div>
+
   </div>
 </div>
 
@@ -105,50 +135,47 @@
     el: '#app',
     data: {
       maxWeight: null,
-      sets: {},
-      editing: true
+      sets: [{
+        percentage: '-',
+        weight: 'BAR',
+        reps: defaults.baseReps
+      }],
+      editing: true,
+      addPercentage: null
     },
     methods: {
       compute: function () {
-        this.sets = {
-          BAR: {
-            percentage: 'BAR',
+        this.sets = [
+          {
+            percentage: '-',
             weight: 'BAR',
-            reps: defaults.baseReps,
-            count: 1
+            reps: defaults.baseReps
           }
-        }
+        ]
         for (var p = defaults.basePercentage; p <= defaults.maxPercentage; p += defaults.increments) {
           var set = createSet(this.maxWeight, p, defaults.baseReps);
-          this.sets[set.percentage] = set;
+          this.sets.push(set);
         }
       },
       toggleEdit: function () {
         this.editing = !this.editing;
       },
-      addRep: function (p) {
-        this.sets[p].reps += 1;
-        this.$forceUpdate();
-      },
-      minusRep: function (p) {
-        this.sets[p].reps -= 1;
-        this.$forceUpdate();
-      },
-      addCount: function (p) {
-        this.sets[p].count += 1;
-        this.$forceUpdate();
-      },
-      minusCount: function (p) {
-        this.sets[p].count -= 1;
-        this.$forceUpdate();
-      },
       deleteSet: function (p) {
-        delete this.sets[p];
-        this.$forceUpdate();
+        this.sets.splice(p, 1)
       },
       doneSet: function (p) {
         this.sets[p].done = !this.sets[p].done;
         this.$forceUpdate();
+      },
+      addSet: function() {
+        var p = this.addPercentage;
+        var i;
+        for(i = 0; i < this.sets.length && p > this.sets[i].percentage; i++);
+        this.sets.splice(i, 0, createSet(this.maxWeight, p, defaults.baseReps));
+      },
+      cloneSet: function(p) {
+        var obj = Object.assign({}, this.sets[p]);
+        this.sets.splice(p + 1, 0, obj);
       }
     }
   })
@@ -164,10 +191,9 @@
 //      weight = pureWeight
 //    }
     return {
-      percentage: percentage + '%',
+      percentage: percentage,
       weight: rounded,
       reps: reps,
-      count: 1
     }
   }
 </script>
