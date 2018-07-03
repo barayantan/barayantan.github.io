@@ -1,0 +1,175 @@
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css"
+        integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+  <style scoped>
+
+    .done td {
+      background-color: #0078e7 !important;
+    }
+
+    .button-success,
+    .button-error,
+    .button-warning,
+    .button-secondary {
+      color: white;
+      border-radius: 4px;
+      text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+    }
+
+    .button-success {
+      background: rgb(28, 184, 65); /* this is a green */
+    }
+
+    .button-error {
+      background: rgb(202, 60, 60); /* this is a maroon */
+    }
+
+    .button-warning {
+      background: rgb(223, 117, 20); /* this is an orange */
+    }
+
+    .button-secondary {
+      background: rgb(66, 184, 221); /* this is a light blue */
+    }
+
+  </style>
+</head>
+<body>
+<div class="pure-g pure-form" id="app">
+  <div class="pure-u-1">
+    <div>
+      <fieldset>
+        <input type="input" placeholder="1 RM Weight" class="pure-input-rounded" v-model="maxWeight">
+        <button class="pure-button pure-button-primary pure-input-rounded" v-on:click="compute" onclick="return false;">
+          Compute
+        </button>
+        <button class="pure-button pure-input-rounded" v-bind:class="{'button-secondary': editing}"
+                v-on:click="toggleEdit" onclick="return false;">Edit
+        </button>
+      </fieldset>
+    </div>
+
+    <table class="pure-table pure-table-horizontal pure-table-striped" style="width: 100%" id="breakdown">
+      <thead>
+      <tr>
+        <th>%</th>
+        <th>Weight</th>
+        <th>Reps</th>
+        <th>&nbsp;</th>
+      </tr>
+      </thead>
+
+      <tbody>
+
+      <tr v-for="set in sets" id="{{ set.percentage }}" v-bind:class="{done: set.done}">
+        <td>{{ set.percentage }}</td>
+        <td>{{ set.weight }}</td>
+        <td style="text-align: center">
+          <button class="button-error" v-show="editing" v-on:click="minusCount(set.percentage)">-</button>
+          <span v-if="set.count > 1 || editing">{{ set.count }}</span>
+          <button class="button-success" v-show="editing" v-on:click="addCount(set.percentage)">+</button>
+          <br v-show="editing" />
+          <span v-if="set.count > 1 || editing">x</span>
+          <br v-show="editing" />
+          <button class="button-error" v-show="editing" v-on:click="minusRep(set.percentage)">-</button>
+          <span>{{ set.reps }}</span>
+          <button class="button-success" v-show="editing" v-on:click="addRep(set.percentage)">+</button>
+        </td>
+        <td>
+          <button class="pure-button pure-input-rounded button-warning" v-show="editing"
+                  v-on:click="deleteSet(set.percentage)">&cross;</button>
+          <button class="pure-button pure-input-rounded" v-show="!editing"
+                  v-bind:class="{'pure-button-primary': !set.done}"
+                  v-on:click="doneSet(set.percentage)">&check;</button>
+        </td>
+      </tr>
+
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script type="text/javascript">
+  var defaults = {
+    basePercentage: 40,
+    maxPercentage: 100,
+    increments: 5,
+    baseReps: 5,
+    roundNearest: 5,
+  }
+
+  var app = new Vue({
+    el: '#app',
+    data: {
+      maxWeight: null,
+      sets: {},
+      editing: true
+    },
+    methods: {
+      compute: function () {
+        this.sets = {
+          BAR: {
+            percentage: 'BAR',
+            weight: 'BAR',
+            reps: defaults.baseReps,
+            count: 1
+          }
+        }
+        for (var p = defaults.basePercentage; p <= defaults.maxPercentage; p += defaults.increments) {
+          var set = createSet(this.maxWeight, p, defaults.baseReps);
+          this.sets[set.percentage] = set;
+        }
+      },
+      toggleEdit: function () {
+        this.editing = !this.editing;
+      },
+      addRep: function (p) {
+        this.sets[p].reps += 1;
+        this.$forceUpdate();
+      },
+      minusRep: function (p) {
+        this.sets[p].reps -= 1;
+        this.$forceUpdate();
+      },
+      addCount: function (p) {
+        this.sets[p].count += 1;
+        this.$forceUpdate();
+      },
+      minusCount: function (p) {
+        this.sets[p].count -= 1;
+        this.$forceUpdate();
+      },
+      deleteSet: function (p) {
+        delete this.sets[p];
+        this.$forceUpdate();
+      },
+      doneSet: function (p) {
+        this.sets[p].done = !this.sets[p].done;
+        this.$forceUpdate();
+      }
+    }
+  })
+
+  function createSet(maxWeight, percentage, reps) {
+    var pureWeight = (maxWeight * percentage / 100);
+    var rounded = Math.round(pureWeight / defaults.roundNearest) * defaults.roundNearest;
+
+//    var weight = '';
+//    if (pureWeight != rounded) {
+//      weight = rounded + ' (' + pureWeight + ')'
+//    } else {
+//      weight = pureWeight
+//    }
+    return {
+      percentage: percentage + '%',
+      weight: rounded,
+      reps: reps,
+      count: 1
+    }
+  }
+</script>
+</body>
+</html>
