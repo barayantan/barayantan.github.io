@@ -41,17 +41,10 @@
 <div class="pure-g pure-form" id="app">
   <div class="pure-u-1">
     <div>
-      <fieldset>
-        &nbsp;
+      <fieldset style="text-align: center">
         <div class="pure-u-1-2">
           <input type="number" placeholder="100% Weight" class="pure-input-rounded" v-model="maxWeight" style="width: 100%">
         </div>
-        <button class="pure-button pure-button-primary pure-input-rounded" v-on:click="compute">
-          Compute
-        </button>
-        <button class="pure-button pure-input-rounded" v-bind:class="{'button-secondary': editing}" v-on:click="toggleEdit">
-          Edit
-        </button>
       </fieldset>
     </div>
 
@@ -73,8 +66,14 @@
           <button class="button-success" v-show="editing" style="font-weight: bold"
                   v-on:click="cloneSet(index)">+</button>
         </td>
-        <td>{{ set.percentage }} %</td>
-        <td>{{ set.weight }}</td>
+        <template v-if="set.percentage == 'BAR'">
+          <td>BAR</td>
+          <td>BAR</td>
+        </template>
+        <template v-else>
+          <td>{{ set.percentage }} %</td>
+          <td>{{ computeWeight(maxWeight, set.percentage) }}</td>
+        </template>
         <td>
           <span v-show="editing">
             <select v-model="set.reps" class="pure-input-rounded">
@@ -108,13 +107,26 @@
     </table>
 
     <div v-show="editing">
-      <fieldset>
-        &nbsp;
-        <div class="pure-u-1-2">
-          <input type="number" placeholder="Percentage" class="pure-input-rounded" v-model="addPercentage" style="width: 100%">
-        </div>
-        <button class="pure-button pure-button-primary pure-input-rounded" v-on:click="addSet">
-          Add
+      <fieldset style="text-align: center">
+        <button class="pure-button pure-button-primary pure-input-rounded" v-on:click="compute">
+          Get Percentages
+        </button>
+        <button class="pure-button pure-input-rounded" v-bind:class="{'button-secondary': editing}" v-on:click="toggleEdit">
+          Lift!
+        </button>
+        <!--&nbsp;-->
+        <!--<div class="pure-u-1-2">-->
+        <!--<input type="number" placeholder="Percentage" class="pure-input-rounded" v-model="addPercentage" style="width: 100%">-->
+        <!--</div>-->
+        <!--<button class="pure-button pure-button-primary pure-input-rounded" v-on:click="addSet">-->
+        <!--Add-->
+        <!--</button>-->
+      </fieldset>
+    </div>
+    <div v-show="!editing">
+      <fieldset style="text-align: center">
+        <button class="pure-button pure-input-rounded" v-bind:class="{'button-secondary': editing}" v-on:click="toggleEdit">
+          Edit
         </button>
       </fieldset>
     </div>
@@ -136,8 +148,7 @@
     data: {
       maxWeight: null,
       sets: [{
-        percentage: '-',
-        weight: 'BAR',
+        percentage: 'BAR',
         reps: defaults.baseReps
       }],
       editing: true,
@@ -147,13 +158,12 @@
       compute: function () {
         this.sets = [
           {
-            percentage: '-',
-            weight: 'BAR',
+            percentage: 'BAR',
             reps: defaults.baseReps
           }
         ]
         for (var p = defaults.basePercentage; p <= defaults.maxPercentage; p += defaults.increments) {
-          var set = createSet(this.maxWeight, p, defaults.baseReps);
+          var set = createSet(p, defaults.baseReps);
           this.sets.push(set);
         }
       },
@@ -171,7 +181,7 @@
         var p = this.addPercentage;
         var i;
         for(i = 0; i < this.sets.length && p > this.sets[i].percentage; i++);
-        this.sets.splice(i, 0, createSet(this.maxWeight, p, defaults.baseReps));
+        this.sets.splice(i, 0, createSet(p, defaults.baseReps));
       },
       cloneSet: function(p) {
         var obj = Object.assign({}, this.sets[p]);
@@ -180,21 +190,17 @@
     }
   })
 
-  function createSet(maxWeight, percentage, reps) {
-    var pureWeight = (maxWeight * percentage / 100);
-    var rounded = Math.round(pureWeight / defaults.roundNearest) * defaults.roundNearest;
-
-//    var weight = '';
-//    if (pureWeight != rounded) {
-//      weight = rounded + ' (' + pureWeight + ')'
-//    } else {
-//      weight = pureWeight
-//    }
+  function createSet(percentage, reps) {
     return {
       percentage: percentage,
-      weight: rounded,
-      reps: reps,
+      reps: reps
     }
+  }
+
+  function computeWeight(maxWeight, percentage) {
+    var pureWeight = (maxWeight * percentage / 100);
+    var rounded = Math.round(pureWeight / defaults.roundNearest) * defaults.roundNearest;
+    return rounded;
   }
 </script>
 </body>
