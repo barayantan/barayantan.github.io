@@ -66,7 +66,7 @@
           <button class="button-success" v-show="editing" style="font-weight: bold"
                   v-on:click="cloneSet(index)">+</button>
         </td>
-        <template v-if="set.percentage == 'BAR'">
+        <template v-if="set.percentage == 0">
           <td>BAR</td>
           <td>BAR</td>
         </template>
@@ -108,24 +108,26 @@
 
     <div v-show="editing">
       <fieldset style="text-align: center">
-        <button class="pure-button pure-button-primary pure-input-rounded" v-on:click="compute">
-          Get Percentages
-        </button>
-        <button class="pure-button pure-input-rounded" v-bind:class="{'button-secondary': editing}" v-on:click="toggleEdit">
-          Lift!
-        </button>
-        <!--&nbsp;-->
         <!--<div class="pure-u-1-2">-->
         <!--<input type="number" placeholder="Percentage" class="pure-input-rounded" v-model="addPercentage" style="width: 100%">-->
         <!--</div>-->
         <!--<button class="pure-button pure-button-primary pure-input-rounded" v-on:click="addSet">-->
-        <!--Add-->
+          <!--Add-->
         <!--</button>-->
+        <!--<br />-->
+
+        <button class="pure-button pure-button-primary pure-input-rounded" v-on:click="compute">
+          Get Percentages
+        </button>
+        <button class="pure-button pure-input-rounded button-success" v-on:click="toggleEdit">
+          Lift!
+        </button>
+        <!--&nbsp;-->
       </fieldset>
     </div>
     <div v-show="!editing">
       <fieldset style="text-align: center">
-        <button class="pure-button pure-input-rounded" v-bind:class="{'button-secondary': editing}" v-on:click="toggleEdit">
+        <button class="pure-button pure-input-rounded" v-on:click="toggleEdit">
           Edit
         </button>
       </fieldset>
@@ -148,7 +150,7 @@
     data: {
       maxWeight: null,
       sets: [{
-        percentage: 'BAR',
+        percentage: 0,
         reps: defaults.baseReps
       }],
       editing: true,
@@ -158,7 +160,7 @@
       compute: function () {
         this.sets = [
           {
-            percentage: 'BAR',
+            percentage: 0,
             reps: defaults.baseReps
           }
         ]
