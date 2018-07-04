@@ -201,7 +201,7 @@
 
   function computeWeight(maxWeight, percentage) {
     var pureWeight = (maxWeight * percentage / 100);
-    var rounded = Math.round(pureWeight / defaults.roundNearest) * defaults.roundNearest;
+    var rounded = Math.ceil(pureWeight / defaults.roundNearest) * defaults.roundNearest;
     return rounded;
   }
 </script>
